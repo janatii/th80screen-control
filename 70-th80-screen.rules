@@ -1,0 +1,15 @@
+# Lets your user open the EPOMAKER TH80 Pro V2 HID interfaces without sudo.
+# Install once:
+#   sudo cp 70-th80-screen.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload && sudo udevadm trigger
+# then unplug and replug the keyboard (or reconnect Bluetooth).
+#
+# uaccess = the user logged in at the desktop; plugdev = for headless machines (e.g. a Raspberry Pi,
+# whose default user is in plugdev). Add yourself with: sudo usermod -aG plugdev $USER
+
+# USB cable (320F:5055) and the 2.4G dongle (320F:5088)
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="320f", ATTRS{idProduct}=="5055", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="320f", ATTRS{idProduct}=="5088", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+
+# Bluetooth LE (245A:8276): detection only, the screen can't be changed over Bluetooth
+SUBSYSTEM=="hidraw", KERNELS=="0005:245A:8276.*", MODE="0660", GROUP="plugdev", TAG+="uaccess"

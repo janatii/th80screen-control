@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TH80 Screen Studio</title>
+<style>
+:root{
+  --bg:#f4f5f7;--panel:#ffffff;--ink:#16181d;--dim:#626875;--line:#e2e4e9;--accent:#3b6cf6;--accent-ink:#fff;
+  --good:#1f9d55;--warn:#b7791f;--bad:#d64545;--screen:#0c0e14;--radius:12px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1115;--panel:#181b21;--ink:#e8eaee;--dim:#959cab;--line:#2a2e37;--accent:#6b8cff;--accent-ink:#0b0d12;
+  --good:#3ccf7e;--warn:#e3b341;--bad:#ff6b6b;
+}}
+:root[data-theme="dark"]{--bg:#0f1115;--panel:#181b21;--ink:#e8eaee;--dim:#959cab;--line:#2a2e37;--accent:#6b8cff;--accent-ink:#0b0d12;--good:#3ccf7e;--warn:#e3b341;--bad:#ff6b6b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Segoe UI",system-ui,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line)}
+.bar{max-width:980px;margin:0 auto;padding:12px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+h1{font-size:17px;margin:0;font-weight:650;letter-spacing:-.01em}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--dim);font-size:13px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.dot.ok{background:var(--good)}.dot.bad{background:var(--bad)}.dot.busy{background:var(--warn)}
+nav{max-width:980px;margin:0 auto;padding:0 16px;display:flex;gap:4px;overflow-x:auto}
+nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);padding:10px 12px;font:inherit;cursor:pointer;white-space:nowrap}
+nav button.on{color:var(--ink);border-color:var(--accent);font-weight:600}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+section{display:none}section.on{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.card h2{font-size:15px;margin:0 0 4px;font-weight:650}
+.card p.sub{margin:0 0 14px;color:var(--dim);font-size:13.5px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button.btn{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 14px;border-radius:9px;cursor:pointer}
+button.btn:hover{border-color:var(--dim)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button.btn:disabled{opacity:.5;cursor:not-allowed}
+label{display:block;font-size:13px;color:var(--dim);margin:10px 0 4px}
+input[type=text],input[type=number],input[type=date],input[type=url],select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+input[type=color]{width:44px;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:2px}
+.switch{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:12px 0;border-top:1px solid var(--line)}
+.switch:first-of-type{border-top:0}
+.switch b{display:block;font-weight:600}.switch span{color:var(--dim);font-size:13.5px}
+.switch input{width:20px;height:20px;accent-color:var(--accent);flex:none;margin-top:3px}
+.screen{width:100%;max-width:480px;aspect-ratio:240/135;background:var(--screen);border-radius:10px;border:6px solid #23262e;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#5b6170;font-size:13px}
+.screen img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated;display:block}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.thumbs div{width:96px;aspect-ratio:240/135;border-radius:6px;overflow:hidden;background:var(--screen);position:relative}
+.thumbs img{width:100%;height:100%;object-fit:cover}
+.thumbs span{position:absolute;left:4px;top:2px;font-size:11px;color:#fff;text-shadow:0 1px 2px #000}
+.drop{border:1.5px dashed var(--line);border-radius:10px;padding:18px;text-align:center;color:var(--dim);cursor:pointer}
+.drop:hover{border-color:var(--accent);color:var(--ink)}
+.note{font-size:13px;color:var(--dim);margin-top:10px}
+.warn{background:color-mix(in srgb,var(--warn) 14%,transparent);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);border-radius:10px;padding:10px 12px;font-size:13.5px;margin-bottom:16px}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:8px}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.hosts .h{display:grid;grid-template-columns:1fr 1.2fr 32px;gap:6px;margin-bottom:6px}
+.hosts button{font:inherit;border:1px solid var(--line);background:none;color:var(--dim);border-radius:8px;cursor:pointer}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100% - 32px)}
+#toast.show{opacity:1}#toast.err{background:var(--bad);color:#fff}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}.kv dt{color:var(--dim)}.kv dd{margin:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{font:inherit;border:0;background:var(--panel);color:var(--dim);padding:8px 14px;cursor:pointer}
+.seg button.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+kbd{font:12px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1>TH80 Screen Studio</h1>
+    <span class="pill"><span class="dot" id="devDot"></span><span id="devText">Checking keyboard…</span></span>
+    <span class="pill" id="jobPill" hidden><span class="dot busy"></span><span id="jobText"></span></span>
+  </div>
+  <nav id="tabs">
+    <button data-tab="screen" class="on">Screen</button>
+    <button data-tab="pictures">Pictures &amp; GIFs</button>
+    <button data-tab="cards">Info cards</button>
+    <button data-tab="auto">Automation</button>
+  </nav>
+</header>
+
+<main>
+  <div class="warn" id="factoryWarn" hidden>Your keyboard still has its factory animation (<span id="factoryFrames"></span> frames). The first picture, GIF or card you upload replaces it for good; this app can't restore it.</div>
+  <div class="card" id="jobCard" hidden style="margin-bottom:16px">
+    <h2 id="jobTitle">Uploading</h2>
+    <p class="sub" style="margin:0">Keep the keyboard plugged in until this finishes.</p>
+    <div class="progress"><i id="jobBar"></i></div>
+  </div>
+
+  <!-- SCREEN -->
+  <section id="screen" class="on">
+    <div class="grid">
+      <div class="card">
+        <h2>What the screen shows</h2>
+        <p class="sub">Switching is instant and doesn't wear the keyboard's memory.</p>
+        <div class="seg" id="modeSeg"><button data-mode="clock">Clock</button><button data-mode="image">Stored image</button></div>
+        <div class="row" style="margin-top:14px"><button class="btn primary" id="syncBtn">Sync clock now</button></div>
+        <p class="note">The keyboard keeps time by itself after a sync. Hotkey (when on in Automation): <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>K</kbd> flips between the two.</p>
+      </div>
+      <div class="card">
+        <h2>Keyboard</h2>
+        <p class="sub">Read from the keyboard every few seconds.</p>
+        <dl class="kv">
+          <dt>Connection</dt><dd id="kvConn">—</dd>
+          <dt>Mode</dt><dd id="kvMode">—</dd>
+          <dt>Stored frames</dt><dd id="kvFrames">—</dd>
+          <dt>Clock last set</dt><dd id="kvClock">—</dd>
+          <dt>Last upload</dt><dd id="kvLast">—</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- PICTURES -->
+  <section id="pictures">
+    <div class="grid">
+      <div class="card">
+        <h2>Picture or slideshow</h2>
+        <p class="sub">One image = a still picture. Several (up to <span class="maxf">18</span>) = a slideshow. Images are cropped to fill 240×135.</p>
+        <div class="drop" id="imgDrop">Click or drop images here</div>
+        <input type="file" id="imgInput" accept="image/png,image/jpeg,image/webp,image/bmp" multiple hidden>
+        <div class="thumbs" id="imgThumbs"></div>
+        <div id="slideOpts" hidden>
+          <label for="slideSec">Seconds per slide</label>
+          <input type="number" id="slideSec" min="0.06" max="65" step="0.5" value="5">
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn primary" id="imgSend" disabled>Send to keyboard</button>
+          <button class="btn" id="imgClear">Clear</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Animated GIF</h2>
+        <p class="sub">Long GIFs are sampled evenly down to <span class="maxf">18</span> frames so the whole loop still plays.</p>
+        <div class="drop" id="gifDrop">Click or drop a GIF here</div>
+        <input type="file" id="gifInput" accept="image/gif" hidden>
+        <div class="screen" id="gifPreview" style="margin-top:12px">No GIF chosen</div>
+        <div class="row" style="margin-top:14px"><button class="btn primary" id="gifSend" disabled>Send to keyboard</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CARDS -->
+  <section id="cards">
+    <div class="grid">
+      <div class="card">
+        <h2>Info card</h2>
+        <p class="sub">A rendered snapshot. It stays on screen until you send something else (or auto-refresh it).</p>
+        <label for="cardType">Card</label>
+        <select id="cardType">
+          <option value="stats">System stats (CPU, RAM, disk)</option>
+          <option value="homelab">Homelab status</option>
+          <option value="weather">Weather</option>
+          <option value="calendar">Next calendar events</option>
+          <option value="daily">Daily text / countdown</option>
+          <option value="status">Status sign (busy, DND…)</option>
+        </select>
+        <div id="opts-stats" class="opts"><p class="note">No options. Shows this PC's CPU, memory and system-drive use.</p></div>
+        <div id="opts-homelab" class="opts hosts" hidden>
+          <label>Servers (name and host:port to check; up to 8)</label>
+          <div id="hostList"></div>
+          <button class="btn" id="hostAdd" type="button">Add server</button>
+        </div>
+        <div id="opts-weather" class="opts" hidden>
+          <label for="wCity">City</label><input type="text" id="wCity" placeholder="e.g. Casablanca">
+          <p class="note">Forecast from open-meteo.com (no account needed). Only the city name is sent.</p>
+        </div>
+        <div id="opts-calendar" class="opts" hidden>
+          <label for="cIcs">Calendar iCal link (.ics)</label><input type="url" id="cIcs" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics">
+          <p class="note">Google Calendar: Settings → your calendar → "Secret address in iCal format". Repeating events aren't expanded yet.</p>
+        </div>
+        <div id="opts-daily" class="opts" hidden>
+          <label for="dTitle">Title (blank = today's date)</label><input type="text" id="dTitle">
+          <label for="dText">Text</label><input type="text" id="dText" placeholder="Ship it.">
+          <label for="dCount">Count down to (optional)</label><input type="date" id="dCount">
+        </div>
+        <div id="opts-status" class="opts" hidden>
+          <label for="sText">Big text</label><input type="text" id="sText">
+          <label for="sSub">Small text (optional)</label><input type="text" id="sSub">
+          <label for="sColor">Background</label>
+          <div class="row"><input type="color" id="sColor">
+            <button class="btn" type="button" data-preset="#c62828|In a meeting">Meeting</button>
+            <button class="btn" type="button" data-preset="#6a1b9a|Do not disturb">DND</button>
+            <button class="btn" type="button" data-preset="#2e7d32|Free">Free</button>
+          </div>
+          <p class="note">Tip: send this once, then use the hotkey to flip between it and the clock with zero wear.</p>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn" id="cardPreviewBtn">Preview</button>
+          <button class="btn primary" id="cardSend">Send to keyboard</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Preview</h2>
+        <p class="sub">Exactly what will be sent (240×135).</p>
+        <div class="screen" id="cardPreview">Press Preview</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUTOMATION -->
+  <section id="auto">
+    <div class="grid">
+      <div class="card">
+        <h2>Automatic</h2>
+        <label class="switch"><div><b>Hotkey <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>K</kbd></b><span>Flip between the clock and the stored image from anywhere.</span><span id="hotkeyErr" style="color:var(--bad);display:block"></span></div><input type="checkbox" id="setHotkey"></label>
+        <label class="switch"><div><b>Show image while PC is locked</b><span>Stored image when you lock the screen, clock when you're back.</span></div><input type="checkbox" id="setLock"></label>
+        <label class="switch"><div><b>Sync clock when the app starts</b><span>Only if the screen is already showing the clock.</span></div><input type="checkbox" id="setSync"></label>
+        <label class="switch"><div><b>Start at login</b><span id="startupDesc">Runs quietly in the background at login so the options above keep working.</span></div><input type="checkbox" id="setStartup"></label>
+      </div>
+      <div class="card">
+        <h2>Auto-refresh a card</h2>
+        <p class="sub">Re-renders and uploads a card on a timer. Each refresh rewrites the keyboard's flash, so the minimum is <span id="minEvery">15</span> minutes.</p>
+        <label class="switch"><div><b>Enabled</b><span id="autoNext">Off</span><span id="autoErr" style="color:var(--bad);display:block"></span></div><input type="checkbox" id="autoOn"></label>
+        <label for="autoCard">Card</label>
+        <select id="autoCard">
+          <option value="stats">System stats</option><option value="homelab">Homelab status</option>
+          <option value="weather">Weather</option><option value="calendar">Next calendar events</option>
+          <option value="daily">Daily text / countdown</option>
+        </select>
+        <label for="autoEvery">Every (minutes)</label>
+        <input type="number" id="autoEvery" min="15" step="5" value="30">
+        <div class="row" style="margin-top:14px"><button class="btn primary" id="autoSave">Save</button></div>
+        <p class="note">Card options come from the Info cards tab (they're saved when you preview or send). The app must be running, so turn on "Start at login".</p>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+let state = null, images = [], gifData = null, jobWasRunning = false;
+
+async function api(path, body) {
+  const opt = body === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json','X-TH80':'1'}, body:JSON.stringify(body)};
+  const r = await fetch(path, opt);
+  const j = await r.json().catch(() => ({error:'Bad response'}));
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+function toast(msg, err) {
+  const t = $('#toast'); t.textContent = msg; t.className = 'show' + (err ? ' err' : '');
+  clearTimeout(t._h); t._h = setTimeout(() => t.className = '', err ? 6000 : 3000);
+}
+async function act(fn, okMsg) {
+  try { const r = await fn(); if (okMsg || r?.message) toast(r?.message || okMsg); refresh(); return r; }
+  catch (e) { toast(e.message, true); }
+}
+
+// tabs
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('main section').forEach(s => s.classList.toggle('on', s.id === b.dataset.tab));
+  try { localStorage.setItem('th80tab', b.dataset.tab); } catch {}
+});
+try { const t = localStorage.getItem('th80tab'); if (t) document.querySelector(`#tabs [data-tab="${t}"]`)?.click(); } catch {}
+
+// state
+let formsFilled = false;
+async function refresh() {
+  try { state = await api('/api/state'); } catch { $('#devText').textContent = 'App not responding'; return; }
+  const d = state.device, j = state.job;
+  const dot = $('#devDot');
+  if (d.busy) { dot.className = 'dot busy'; $('#devText').textContent = 'Keyboard busy (uploading)'; }
+  else if (d.connected) { dot.className = 'dot ok'; $('#devText').textContent = `Connected · showing ${d.mode}`; }
+  else { dot.className = 'dot bad'; $('#devText').textContent = 'Keyboard not found'; }
+  const seen = (d.seen || []).map(s => `${s.name} via ${s.transport}${s.screen ? ' (screen control OK)' : ' (no screen control)'}`);
+  $('#kvConn').textContent = seen.length ? seen.join('; ') : (d.connected ? 'Connected' : 'No EPOMAKER keyboard found');
+  if (!d.connected && seen.length) $('#devText').textContent = `Found via ${d.seen[0].transport}. To change the screen, use the USB cable or the 2.4G dongle`;
+  if (d.mode) {
+    $('#kvMode').textContent = d.mode;
+    $('#kvFrames').textContent = d.frames + (d.frames > 1 ? ` (${d.delay_ms} ms each)` : '');
+    $('#kvClock').textContent = d.clock_set;
+    document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === d.mode));
+    $('#factoryWarn').hidden = !(d.frames > state.max_frames);
+    $('#factoryFrames').textContent = d.frames;
+  }
+  const lu = state.settings.last_upload; $('#kvLast').textContent = lu ? `${lu.label}, ${lu.at}` : '—';
+  // job
+  $('#jobPill').hidden = $('#jobCard').hidden = !j.running;
+  if (j.running) { $('#jobText').textContent = `${j.label} ${j.progress}%`; $('#jobTitle').textContent = `Uploading: ${j.label}`; $('#jobBar').style.width = j.progress + '%'; }
+  if (jobWasRunning && !j.running) toast(j.error ? 'Upload failed: ' + j.error : `${j.label} is on the screen.`, !!j.error);
+  jobWasRunning = j.running;
+  document.querySelectorAll('#imgSend,#gifSend,#cardSend').forEach(b => b.dataset.busy = j.running ? '1' : '');
+  updateSendButtons();
+  // automation
+  const s = state.settings;
+  $('#autoNext').textContent = s.auto.enabled ? (state.auto_next ? `Next refresh at ${state.auto_next}` : 'Starting…') : 'Off';
+  $('#autoErr').textContent = state.auto_error || '';
+  if (state.hotkey_supported) {
+    $('#hotkeyErr').textContent = state.hotkey_error && s.hotkey ? state.hotkey_error : '';
+  } else {
+    $('#setHotkey').disabled = true; $('#setHotkey').checked = false;
+    $('#hotkeyErr').style.color = 'var(--dim)'; $('#hotkeyErr').textContent = state.hotkey_hint;
+  }
+  if (state.platform === 'linux') $('#startupDesc').textContent = 'Runs in the background at login (systemd user service, or desktop autostart).';
+  if (!formsFilled) { fillForms(); formsFilled = true; }
+  clearTimeout(refresh._h); refresh._h = setTimeout(refresh, j.running ? 1000 : 5000);
+}
+function fillForms() {
+  const s = state.settings, c = s.cards;
+  document.querySelectorAll('.maxf').forEach(e => e.textContent = state.max_frames);
+  $('#minEvery').textContent = state.min_every; $('#autoEvery').min = state.min_every;
+  $('#setHotkey').checked = s.hotkey; $('#setLock').checked = s.lock_switch; $('#setSync').checked = s.sync_clock_on_start; $('#setStartup').checked = state.startup;
+  $('#autoOn').checked = s.auto.enabled; $('#autoCard').value = s.auto.card; $('#autoEvery').value = s.auto.every;
+  $('#wCity').value = c.weather.city || ''; $('#cIcs').value = c.calendar.ics_url || '';
+  $('#dTitle').value = c.daily.title || ''; $('#dText').value = c.daily.text || ''; $('#dCount').value = c.daily.countdown || '';
+  $('#sText').value = c.status.text || ''; $('#sSub').value = c.status.subtext || ''; $('#sColor').value = c.status.color || '#c62828';
+  $('#hostList').innerHTML = ''; (c.homelab.hosts || []).forEach(h => addHost(h.name, h.target));
+}
+
+// screen tab
+document.querySelectorAll('#modeSeg button').forEach(b => b.onclick = () => act(() => api('/api/mode', {mode:b.dataset.mode})));
+$('#syncBtn').onclick = () => act(() => api('/api/clock', {}));
+
+// pictures
+function readFile(f) { return new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(f); }); }
+function wireDrop(drop, input, handler) {
+  drop.onclick = () => input.click();
+  input.onchange = () => handler([...input.files]);
+  drop.ondragover = e => { e.preventDefault(); drop.style.borderColor = 'var(--accent)'; };
+  drop.ondragleave = () => drop.style.borderColor = '';
+  drop.ondrop = e => { e.preventDefault(); drop.style.borderColor = ''; handler([...e.dataTransfer.files]); };
+}
+wireDrop($('#imgDrop'), $('#imgInput'), async files => {
+  for (const f of files.filter(f => f.type.startsWith('image/') && f.type !== 'image/gif')) {
+    if (images.length >= (state?.max_frames || 18)) { toast(`Max ${state?.max_frames || 18} images.`, true); break; }
+    images.push(await readFile(f));
+  }
+  renderThumbs();
+});
+function renderThumbs() {
+  $('#imgThumbs').innerHTML = images.map((src, i) => `<div><img src="${src}" alt=""><span>${i + 1}</span></div>`).join('');
+  $('#slideOpts').hidden = images.length < 2;
+  $('#imgSend').textContent = images.length > 1 ? `Send slideshow (${images.length})` : 'Send to keyboard';
+  updateSendButtons();
+}
+$('#imgClear').onclick = () => { images = []; $('#imgInput').value = ''; renderThumbs(); };
+$('#imgSend').onclick = () => act(() => api('/api/images', {images, delay_ms: Math.round(parseFloat($('#slideSec').value) * 1000)}), 'Upload started…');
+wireDrop($('#gifDrop'), $('#gifInput'), async files => {
+  const f = files.find(f => f.type === 'image/gif'); if (!f) return toast('Choose a .gif file.', true);
+  gifData = await readFile(f); $('#gifPreview').innerHTML = `<img src="${gifData}" alt="GIF preview">`; updateSendButtons();
+});
+$('#gifSend').onclick = () => act(() => api('/api/gif', {data: gifData}), 'Upload started…');
+function updateSendButtons() {
+  const busy = state?.job?.running || !state?.device?.connected;
+  $('#imgSend').disabled = busy || !images.length; $('#gifSend').disabled = busy || !gifData; $('#cardSend').disabled = busy;
+}
+
+// cards
+$('#cardType').onchange = () => document.querySelectorAll('.opts').forEach(o => o.hidden = o.id !== 'opts-' + $('#cardType').value);
+function addHost(name = '', target = '') {
+  if ($('#hostList').children.length >= 8) return toast('Up to 8 servers.', true);
+  const el = document.createElement('div'); el.className = 'h';
+  el.innerHTML = `<input type="text" placeholder="Name" value=""><input type="text" placeholder="192.168.1.10:22" value=""><button type="button" title="Remove">×</button>`;
+  el.children[0].value = name; el.children[1].value = target; el.children[2].onclick = () => el.remove();
+  $('#hostList').append(el);
+}
+$('#hostAdd').onclick = () => addHost();
+document.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => { const [c, t] = b.dataset.preset.split('|'); $('#sColor').value = c; $('#sText').value = t; });
+function cardOptions() {
+  return {
+    stats: {},
+    homelab: {hosts: [...$('#hostList').children].map(h => ({name: h.children[0].value.trim(), target: h.children[1].value.trim()})).filter(h => h.name && h.target)},
+    weather: {city: $('#wCity').value.trim()},
+    calendar: {ics_url: $('#cIcs').value.trim()},
+    daily: {title: $('#dTitle').value, text: $('#dText').value, countdown: $('#dCount').value},
+    status: {text: $('#sText').value, subtext: $('#sSub').value, color: $('#sColor').value},
+  };
+}
+async function saveCards() { await api('/api/settings', {cards: cardOptions()}); }
+$('#cardPreviewBtn').onclick = async () => {
+  const kind = $('#cardType').value; $('#cardPreview').textContent = 'Rendering…';
+  try { await saveCards(); const r = await api('/api/card/preview', {card: kind}); $('#cardPreview').innerHTML = `<img src="${r.image}" alt="Card preview">`; }
+  catch (e) { $('#cardPreview').textContent = 'Preview failed'; toast(e.message, true); }
+};
+$('#cardSend').onclick = () => act(async () => { await saveCards(); return api('/api/card/upload', {card: $('#cardType').value}); }, 'Upload started…');
+
+// automation
+const saveSetting = (body, msg) => act(async () => { const r = await api('/api/settings', body); if (r.hotkey_error) throw new Error(r.hotkey_error); return r; }, msg);
+$('#setHotkey').onchange = e => saveSetting({hotkey: e.target.checked}, e.target.checked ? 'Hotkey on: Ctrl+Alt+K' : 'Hotkey off');
+$('#setLock').onchange = e => saveSetting({lock_switch: e.target.checked}, 'Saved');
+$('#setSync').onchange = e => saveSetting({sync_clock_on_start: e.target.checked}, 'Saved');
+$('#setStartup').onchange = e => saveSetting({startup: e.target.checked}, e.target.checked ? 'Will start at login' : 'Removed from startup');
+$('#autoSave').onclick = () => saveSetting({auto: {enabled: $('#autoOn').checked, card: $('#autoCard').value, every: parseInt($('#autoEvery').value, 10)}}, 'Auto-refresh saved');
+$('#autoOn').onchange = () => $('#autoSave').click();
+
+refresh();
+</script>
+</body>
+</html>

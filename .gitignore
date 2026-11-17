@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Local app state: card options (calendar iCal link can be a private URL), last upload, toggles
+settings.json
+
+# Generated previews
+th80-preview.png
+*-preview.png
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
