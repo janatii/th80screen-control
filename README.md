@@ -1,4 +1,4 @@
-# th80-screen
+# th80-screen control
 
 Control the screen of an EPOMAKER TH80 Pro V2 from **Windows or Linux**: clock, pictures,
 slideshows, GIFs and info cards (system stats, homelab status, weather, calendar, countdown,
